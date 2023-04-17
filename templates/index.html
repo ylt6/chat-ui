@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenAI Chat UI</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <h1>OpenAI Chatbot</h1>
+    
+    <form action="/get-response" method="POST">
+        <input type="text" name="prompt" placeholder="Enter your message...">
+        <button type="submit" id="submit-btn">Send</button>
+    </form>
+    <div id="response"></div>
+    <script>
+            $(function() {
+            $('form').on('submit', function(event) {
+                event.preventDefault();
+                var data = $(this).serialize();
+
+                var btn = $('#submit-btn');
+                btn.prop('disabled', true); 
+
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/get-response',
+                    data: data,
+                    success: function(response) {
+                        var html = marked.parse(response);
+
+                        $('#response').append('<p><strong>You:</strong> ' + $('input[name=prompt]').val() + '</p><p><strong>Bot:</strong> ' + html + '</p>');
+                        $('input[name=prompt]').val('');
+
+                        btn.prop('disabled', false); 
+                    }
+                });
+            });
+        });       
+    </script>
+</body>
+</html>
