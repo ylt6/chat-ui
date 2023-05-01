@@ -3,10 +3,15 @@ import openai
 import os
 import sys
 
-api_key = os.environ.get("OPENAI_API_KEY")
-if api_key is None:
+from dotenv import find_dotenv, load_dotenv
+
+_ = load_dotenv(find_dotenv())
+
+if (api_key := os.getenv("OPENAI_API_KEY")) is None:
     print("Error: OPENAI_API_KEY environment variable is not set.")
     sys.exit(1)
+
+openai.api_key = api_key
 
 app = Flask(__name__)
 
@@ -18,15 +23,7 @@ def home():
 
 @app.route("/get-response", methods=["POST"])
 def get_response():
-    prompt = request.form["prompt"]
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    print(response)
+    response = get_completion(request.form["prompt"])
     # logging
     response_msg = ""
     if choices := response.get("choices"):
@@ -36,5 +33,14 @@ def get_response():
     return response_msg
 
 
+def get_completion(prompt, model="gpt-3.5-turbo"):
+    return openai.ChatCompletion.create(
+        model=model,
+        messages=[
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("DEBUG"))
